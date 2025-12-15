@@ -5,16 +5,49 @@ import { useState, useEffect } from "react";
 
 export default function Home() {
   const [text, setText] = useState("");
-  const [timeLeft, setTimeLeft] = useState(10*60);
+  const [timeLeft, setTimeLeft] = useState(.3*60);
   const [hasStarted, setHasStarted] = useState(false); 
+  const SESSION_LENGTH = .3 * 60 * 1000;
 
   useEffect(() => {
-  if (!hasStarted) return;
+    const completedDate = localStorage.getItem("completedDate");
+    const today = new Date().toDateString();
+
+    if (completedDate == today){
+      setTimeLeft(0);
+      setHasStarted(true);
+      return;
+    }
+    
+    const savedStart = localStorage.getItem("sessionStartTime");
+    if(savedStart){
+      const startTime = Number(savedStart);
+      const elapsed = Date.now() - startTime;
+      const remaining = SESSION_LENGTH - elapsed;
+
+      if (remaining <= 0){
+        localStorage.setItem("completedDate", today);
+        setTimeLeft(0);
+        setHasStarted(true);
+      }else{
+        setTimeLeft(Math.floor(remaining / 1000));
+        setHasStarted(true);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+  if (!hasStarted || timeLeft ===0) return;
 
   const interval = setInterval(() => {
     setTimeLeft((prev) => {
       if (prev <= 1) {
         clearInterval(interval);
+
+        const today = new Date().toDateString();
+        localStorage.setItem("completedDate", today);
+        localStorage.removeItem("sessionStartTime");
+
         return 0;
       }
       return prev - 1;
@@ -45,6 +78,7 @@ export default function Home() {
           setText(e.target.value);
           if(!hasStarted) {
             setHasStarted(true);
+            localStorage.setItem("sessionStartTime", Date.now().toString());
           }
         }}
       />
