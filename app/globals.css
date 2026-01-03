@@ -58,14 +58,65 @@ p {
   text-align: center;
 }
 
-nav {
+.nav {
   display: flex;
   align-items:center;
   padding: 0 24px;
   margin-top: 12px;
+  justify-content: space-between;
 }
 
 textarea:disabled {
   opacity: .6;
   cursor: not-allowed;
+}
+
+/* Container for all journal entry cards */
+.entries-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+
+  margin-top: 32px;
+}
+
+/* Each individual journal entry card */
+.entry-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  width: 220px;
+  height: 220px;
+  padding: 16px;
+
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+
+  transition: border-color 0.2s ease;
+}
+
+/* Text preview inside the card */
+.entry-preview {
+  font-size: 0.9rem;
+  line-height: 1.5;
+
+  overflow: hidden;
+}
+
+/* Date text at the bottom of the card */
+.entry-date {
+  margin-top: 12px;
+
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+/* Hover effect so it feels clickable */
+.entry-card:hover {
+  border-color: rgba(255, 255, 255, 0.6);
 }

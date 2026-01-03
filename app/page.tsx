@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 
 
 export default function Home() {
@@ -59,8 +60,17 @@ export default function Home() {
 
   return (
     <main>
-      <nav>
-        <span> Daily</span>
+      <nav className = "nav">
+        <div className = "nav-left">
+          <span className = "nav-title">
+            Daily
+          </span>
+        </div>
+        <div className = "nav-right">
+          <Link href="/previous" className="nav-link">
+            Previous Writings
+          </Link>
+        </div>
       </nav>
       <header>
         <h1>Daily Journal</h1>
