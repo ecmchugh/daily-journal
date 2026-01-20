@@ -58,6 +58,30 @@ export default function Home() {
   return () => clearInterval(interval);
 }, [hasStarted]);
 
+  // Save entry to localStorage when timer ends
+  useEffect(() => {
+    if (timeLeft === 0 && hasStarted && text.trim()) {
+      const today = new Date().toDateString();
+      const existingEntries = JSON.parse(
+        localStorage.getItem("journalEntries") || "{}"
+      );
+      
+      existingEntries[today] = text;
+      localStorage.setItem("journalEntries", JSON.stringify(existingEntries));
+    }
+  }, [timeLeft, hasStarted, text]);
+
+  const handleWriteAgain = () => {
+    // Clear completed date to allow writing again
+    localStorage.removeItem("completedDate");
+    localStorage.removeItem("sessionStartTime");
+    
+    // Reset state
+    setTimeLeft(.3*60);
+    setHasStarted(false);
+    setText("");
+  };
+
   return (
     <main>
       <nav className = "nav">
@@ -80,6 +104,16 @@ export default function Home() {
         Time left: {Math.floor(timeLeft / 60)}:
         {(timeLeft % 60).toString().padStart(2, "0")}
       </p>
+      {timeLeft === 0 && (
+        <div style={{ textAlign: "center", marginBottom: "16px" }}>
+          <button 
+            onClick={handleWriteAgain}
+            className="write-again-btn"
+          >
+            Write Again (Testing)
+          </button>
+        </div>
+      )}
       <textarea 
         placeholder="Start writing here..."
         value={text}

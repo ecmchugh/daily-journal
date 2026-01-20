@@ -39,6 +39,18 @@ export default function PreviousPage() {
 
   return (
     <main>
+      <nav className="nav">
+        <div className="nav-left">
+          <span className="nav-title">
+            Daily
+          </span>
+        </div>
+        <div className="nav-right">
+          <Link href="/" className="nav-link">
+            Home
+          </Link>
+        </div>
+      </nav>
       <h1>Previous Writings</h1>
 
       <div className="entries-grid">

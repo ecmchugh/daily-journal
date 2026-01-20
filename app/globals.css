@@ -26,14 +26,19 @@ body {
 }
 
 main {
-  
+  padding: 0 16px;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 textarea {
+  display: block;
   width: 100%;
+  max-width: 800px;
   height: 200px;
-  padding: 0 16px;
-  margin-top: 16px;
+  padding: 16px 24px;
+  margin: 60px auto;
+  font-size: 20px;
 
   border: none;
   outline: none;
@@ -42,9 +47,11 @@ textarea {
   background: transparent;
   line-height: 1.6;
   font-family: inter;
-  max-width: 600px;
-  margin: 60px auto;
-  padding: 0 16px;
+  
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  box-sizing: border-box;
 }
 
 h1 {
@@ -119,4 +126,48 @@ textarea:disabled {
 /* Hover effect so it feels clickable */
 .entry-card:hover {
   border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* Individual entry content display */
+.entry-content {
+  max-width: 600px;
+  margin: 60px auto 0;
+  padding: 0 16px;
+}
+
+.entry-content p {
+  text-align: left;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.nav-link {
+  color: inherit;
+  text-decoration: none;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.nav-link:hover {
+  opacity: 1;
+}
+
+/* Write Again button for testing */
+.write-again-btn {
+  padding: 12px 24px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  color: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0.8;
+}
+
+.write-again-btn:hover {
+  opacity: 1;
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.05);
 }
