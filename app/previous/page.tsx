@@ -3,39 +3,38 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
+interface JournalEntry {
+  text: string;
+  prompt?: string;
+}
+
+type EntryValue = string | JournalEntry;
+
 export default function PreviousPage() {
-  const [entries, setEntries] = useState<[string, string][]>([]);
+  const [entries, setEntries] = useState<[string, EntryValue][]>([]);
 
   useEffect(() => {
-    const storedEntries = JSON.parse(
-      localStorage.getItem("journalEntries") || "{}"
-    );
+    try {
+      const storedEntries = JSON.parse(
+        localStorage.getItem("journalEntries") || "{}"
+      );
 
-    // Convert object into array so we can render it
-    const entryArray = Object.entries(storedEntries);
-    setEntries(entryArray);
+      // Convert object into array so we can render it
+      const entryArray = Object.entries(storedEntries) as [string, EntryValue][];
+      setEntries(entryArray);
+    } catch (error) {
+      console.error("Error loading journal entries from localStorage:", error);
+      setEntries([]);
+    }
   }, []);
 
-  useEffect(() => {
-    const existing = localStorage.getItem("journalEntries");
-
-     if (!existing) {
-        const demoEntries = {
-            "Mon Dec 16 2025":
-                "Today I started building my journal app. It felt confusing at first, but things are starting to click.",
-            "Tue Dec 17 2025":
-                "I worked on the previous writings page today. React state vs localStorage finally made sense.",
-            "Wed Dec 18 2025":
-                "This is a longer entry to test how previews are displayed in the UI. It should be long enough to wrap across multiple lines and show truncation correctly."
-    };
-
-    localStorage.setItem(
-      "journalEntries",
-      JSON.stringify(demoEntries)
-    );
-  }
-}, []);
-
+  // Helper to get text from either old string or new object format
+  const getEntryText = (entry: EntryValue): string => {
+    if (typeof entry === "string") {
+      return entry;
+    }
+    return entry.text;
+  };
 
   return (
     <main>
@@ -54,18 +53,24 @@ export default function PreviousPage() {
       <h1>Previous Writings</h1>
 
       <div className="entries-grid">
-        {entries.map(([date, text]) => (
-          <Link
-            key={date}
-            href={`/previous/${encodeURIComponent(date)}`}
-            className="entry-card"
-          >
-            <p className="entry-preview">
-              {text.slice(0, 100)}...
-            </p>
-            <span className="entry-date">{date}</span>
-          </Link>
-        ))}
+        {entries.length === 0 ? (
+          <p style={{ width: "100%", textAlign: "center", opacity: 0.7 }}>
+            No entries yet. Start writing to see your journal entries here.
+          </p>
+        ) : (
+          entries.map(([date, entry]) => (
+            <Link
+              key={date}
+              href={`/previous/${encodeURIComponent(date)}`}
+              className="entry-card"
+            >
+              <p className="entry-preview">
+                {getEntryText(entry).slice(0, 100)}...
+              </p>
+              <span className="entry-date">{date}</span>
+            </Link>
+          ))
+        )}
       </div>
     </main>
   );
