@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Aurora from "./components/Aurora";
 
 
 export default function Home() {
@@ -72,11 +73,9 @@ export default function Home() {
   }, [timeLeft, hasStarted, text]);
 
   const handleWriteAgain = () => {
-    // Clear completed date to allow writing again
     localStorage.removeItem("completedDate");
     localStorage.removeItem("sessionStartTime");
     
-    // Reset state
     setTimeLeft(.3*60);
     setHasStarted(false);
     setText("");
@@ -84,7 +83,14 @@ export default function Home() {
 
   return (
     <main>
-      <nav className = "nav">
+      <Aurora
+        colorStops={["#2e2d2d", "#ffffff", "#2e2d2d"]}
+        blend={0.5}
+        amplitude={1.0}
+        speed={1}
+      />
+      <div className="content-wrapper">
+        <nav className = "nav">
         <div className = "nav-left">
           <span className = "nav-title">
             Daily
@@ -114,18 +120,21 @@ export default function Home() {
           </button>
         </div>
       )}
-      <textarea 
-        placeholder="Start writing here..."
-        value={text}
-        disabled = {timeLeft == 0}
-        onChange = {(e) => {
-          setText(e.target.value);
-          if(!hasStarted) {
-            setHasStarted(true);
-            localStorage.setItem("sessionStartTime", Date.now().toString());
-          }
-        }}
-      />
+      <div className="textarea-card">
+        <textarea 
+          placeholder="Start writing here..."
+          value={text}
+          disabled = {timeLeft == 0}
+          onChange = {(e) => {
+            setText(e.target.value);
+            if(!hasStarted) {
+              setHasStarted(true);
+              localStorage.setItem("sessionStartTime", Date.now().toString());
+            }
+          }}
+        />
+      </div>
+      </div>
     </main>
   );
 }
