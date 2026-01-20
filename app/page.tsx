@@ -2,38 +2,68 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-
+import Aurora from "./components/Aurora";
+import { prompts } from "./data/prompts";
 
 export default function Home() {
   const [text, setText] = useState("");
-  const [timeLeft, setTimeLeft] = useState(.3*60);
-  const [hasStarted, setHasStarted] = useState(false); 
-  const SESSION_LENGTH = .3 * 60 * 1000;
+  const [timeLeft, setTimeLeft] = useState(15*60);
+  const [hasStarted, setHasStarted] = useState(false);
+  const [currentPrompt, setCurrentPrompt] = useState("");
+  const SESSION_LENGTH = 15 * 60 * 1000;
+
+  // Get today's prompt based on days since first use
+  useEffect(() => {
+    try {
+      let firstDate = localStorage.getItem("firstJournalDate");
+      
+      if (!firstDate) {
+        firstDate = new Date().toDateString();
+        localStorage.setItem("firstJournalDate", firstDate);
+      }
+      
+      const start = new Date(firstDate);
+      const today = new Date();
+      const diffTime = today.getTime() - start.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      const promptIndex = diffDays % prompts.length;
+      
+      setCurrentPrompt(prompts[promptIndex]);
+    } catch (error) {
+      console.error("Error accessing localStorage for prompt:", error);
+      // Set a default prompt if localStorage fails
+      setCurrentPrompt(prompts[0]);
+    }
+  }, []);
 
   useEffect(() => {
-    const completedDate = localStorage.getItem("completedDate");
-    const today = new Date().toDateString();
+    try {
+      const completedDate = localStorage.getItem("completedDate");
+      const today = new Date().toDateString();
 
-    if (completedDate == today){
-      setTimeLeft(0);
-      setHasStarted(true);
-      return;
-    }
-    
-    const savedStart = localStorage.getItem("sessionStartTime");
-    if(savedStart){
-      const startTime = Number(savedStart);
-      const elapsed = Date.now() - startTime;
-      const remaining = SESSION_LENGTH - elapsed;
-
-      if (remaining <= 0){
-        localStorage.setItem("completedDate", today);
+      if (completedDate == today){
         setTimeLeft(0);
         setHasStarted(true);
-      }else{
-        setTimeLeft(Math.floor(remaining / 1000));
-        setHasStarted(true);
+        return;
       }
+      
+      const savedStart = localStorage.getItem("sessionStartTime");
+      if(savedStart){
+        const startTime = Number(savedStart);
+        const elapsed = Date.now() - startTime;
+        const remaining = SESSION_LENGTH - elapsed;
+
+        if (remaining <= 0){
+          localStorage.setItem("completedDate", today);
+          setTimeLeft(0);
+          setHasStarted(true);
+        }else{
+          setTimeLeft(Math.floor(remaining / 1000));
+          setHasStarted(true);
+        }
+      }
+    } catch (error) {
+      console.error("Error accessing localStorage for session:", error);
     }
   }, []);
 
@@ -45,9 +75,13 @@ export default function Home() {
       if (prev <= 1) {
         clearInterval(interval);
 
-        const today = new Date().toDateString();
-        localStorage.setItem("completedDate", today);
-        localStorage.removeItem("sessionStartTime");
+        try {
+          const today = new Date().toDateString();
+          localStorage.setItem("completedDate", today);
+          localStorage.removeItem("sessionStartTime");
+        } catch (error) {
+          console.error("Error updating localStorage when timer ends:", error);
+        }
 
         return 0;
       }
@@ -61,30 +95,34 @@ export default function Home() {
   // Save entry to localStorage when timer ends
   useEffect(() => {
     if (timeLeft === 0 && hasStarted && text.trim()) {
-      const today = new Date().toDateString();
-      const existingEntries = JSON.parse(
-        localStorage.getItem("journalEntries") || "{}"
-      );
-      
-      existingEntries[today] = text;
-      localStorage.setItem("journalEntries", JSON.stringify(existingEntries));
+      try {
+        const today = new Date().toDateString();
+        const existingEntries = JSON.parse(
+          localStorage.getItem("journalEntries") || "{}"
+        );
+        
+        // Save as object with text and prompt
+        existingEntries[today] = {
+          text: text,
+          prompt: currentPrompt
+        };
+        localStorage.setItem("journalEntries", JSON.stringify(existingEntries));
+      } catch (error) {
+        console.error("Error saving journal entry to localStorage:", error);
+      }
     }
-  }, [timeLeft, hasStarted, text]);
-
-  const handleWriteAgain = () => {
-    // Clear completed date to allow writing again
-    localStorage.removeItem("completedDate");
-    localStorage.removeItem("sessionStartTime");
-    
-    // Reset state
-    setTimeLeft(.3*60);
-    setHasStarted(false);
-    setText("");
-  };
+  }, [timeLeft, hasStarted, text, currentPrompt]);
 
   return (
     <main>
-      <nav className = "nav">
+      <Aurora
+        colorStops={["#2e2d2d", "#ffffff", "#2e2d2d"]}
+        blend={0.5}
+        amplitude={1.0}
+        speed={1}
+      />
+      <div className="content-wrapper">
+        <nav className = "nav">
         <div className = "nav-left">
           <span className = "nav-title">
             Daily
@@ -98,34 +136,36 @@ export default function Home() {
       </nav>
       <header>
         <h1>Daily Journal</h1>
-        <p>15 Minutes Each Day.</p>
+        <p className="prompt-text">{currentPrompt}</p>
       </header>
-      <p>
-        Time left: {Math.floor(timeLeft / 60)}:
-        {(timeLeft % 60).toString().padStart(2, "0")}
-      </p>
-      {timeLeft === 0 && (
-        <div style={{ textAlign: "center", marginBottom: "16px" }}>
-          <button 
-            onClick={handleWriteAgain}
-            className="write-again-btn"
-          >
-            Write Again (Testing)
-          </button>
+      
+      <div className="textarea-container">
+        <div className="textarea-header">
+          <span className="time-left">
+            {Math.floor(timeLeft / 60)}:
+            {(timeLeft % 60).toString().padStart(2, "0")}
+          </span>
         </div>
-      )}
-      <textarea 
-        placeholder="Start writing here..."
-        value={text}
-        disabled = {timeLeft == 0}
-        onChange = {(e) => {
-          setText(e.target.value);
-          if(!hasStarted) {
-            setHasStarted(true);
-            localStorage.setItem("sessionStartTime", Date.now().toString());
-          }
-        }}
-      />
+        <div className="textarea-card">
+          <textarea 
+            placeholder="Start writing here..."
+            value={text}
+            disabled = {timeLeft == 0}
+            onChange = {(e) => {
+              setText(e.target.value);
+              if(!hasStarted) {
+                setHasStarted(true);
+                try {
+                  localStorage.setItem("sessionStartTime", Date.now().toString());
+                } catch (error) {
+                  console.error("Error saving session start time:", error);
+                }
+              }
+            }}
+          />
+        </div>
+      </div>
+      </div>
     </main>
   );
 }
