@@ -134,9 +134,6 @@ This opens a simple HTML page where you can clear all localStorage data. See `sc
 | `npm run lint` | Run ESLint |
 | `npm run clear-data` | Clear all journal data |
 
-## License
-
-MIT
 
 ---
 
