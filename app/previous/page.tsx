@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { getOrCreateUserId } from "@/lib/userId";
+import { decryptText } from "@/lib/encryption";
 
 interface JournalEntry {
   text: string;
@@ -36,11 +37,18 @@ export default function PreviousPage() {
           throw supabaseError;
         }
         
-        // Convert Supabase array to format: [date, { text, prompt }]
-        const entryArray: [string, JournalEntry][] = (data || []).map(entry => [
-          entry.date,
-          { text: entry.text, prompt: entry.prompt }
-        ]);
+        // Convert Supabase array to format: [date, { text, prompt }] and decrypt each entry
+        const entryArray: [string, JournalEntry][] = await Promise.all(
+          (data || []).map(async (entry) => {
+            let decryptedText = entry.text;
+            try {
+              decryptedText = await decryptText(entry.text, userId);
+            } catch {
+              // Entry may not be encrypted yet (pre-migration), use original text
+            }
+            return [entry.date, { text: decryptedText, prompt: entry.prompt }] as [string, JournalEntry];
+          })
+        );
         
         setEntries(entryArray);
       } catch (err) {

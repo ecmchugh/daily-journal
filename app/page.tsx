@@ -5,6 +5,7 @@ import Link from "next/link";
 import Aurora from "./components/Aurora";
 import { supabase } from "@/lib/supabase";
 import { getOrCreateUserId } from "@/lib/userId";
+import { encryptText } from "@/lib/encryption";
 
 export default function Home() {
   const [text, setText] = useState("");
@@ -13,7 +14,6 @@ export default function Home() {
   const [currentPrompt, setCurrentPrompt] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [isClearing, setIsClearing] = useState(false);
   const SESSION_LENGTH = 15 * 60 * 1000;
 
   // Get today's prompt from API based on days since first use
@@ -142,12 +142,14 @@ export default function Home() {
             throw new Error('Failed to get user ID');
           }
           
+          const encryptedText = await encryptText(text, userId);
+          
           const { error: supabaseError } = await supabase
             .from('journal_entries')
             .upsert({
               user_id: userId,
               date: today,
-              text: text,
+              text: encryptedText,
               prompt: currentPrompt,
               updated_at: new Date().toISOString()
             }, {
@@ -182,59 +184,6 @@ export default function Home() {
       saveEntry();
     }
   }, [timeLeft, hasStarted, text, currentPrompt]);
-
-  // Testing function: Clear Supabase data and reset timer
-  const handleClearData = async () => {
-    if (!confirm('Are you sure you want to clear all your journal entries and reset the timer? This cannot be undone.')) {
-      return;
-    }
-
-    setIsClearing(true);
-    setError(null);
-
-    try {
-      const userId = getOrCreateUserId();
-      
-      if (userId) {
-        // Delete all entries from Supabase for this user
-        const { error: deleteError } = await supabase
-          .from('journal_entries')
-          .delete()
-          .eq('user_id', userId);
-
-        if (deleteError) {
-          throw deleteError;
-        }
-        console.log('✅ All entries deleted from Supabase');
-      }
-
-      // Clear localStorage session state
-      localStorage.removeItem('completedDate');
-      localStorage.removeItem('sessionStartTime');
-      
-      // Clear today's draft
-      try {
-        const today = new Date().toDateString();
-        const draftKey = `draft_${today}`;
-        localStorage.removeItem(draftKey);
-      } catch (err) {
-        console.error("Error clearing draft:", err);
-      }
-      
-      // Reset component state
-      setText("");
-      setTimeLeft(15 * 60);
-      setHasStarted(false);
-      
-      console.log('✅ Timer reset - you can write again!');
-      alert('Data cleared and timer reset! You can now write again.');
-    } catch (err) {
-      console.error("Error clearing data:", err);
-      setError(`Failed to clear data: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    } finally {
-      setIsClearing(false);
-    }
-  };
 
   return (
     <main>

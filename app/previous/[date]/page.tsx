@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { getOrCreateUserId } from "@/lib/userId";
+import { decryptText } from "@/lib/encryption";
 
 interface JournalEntry {
   text: string;
@@ -51,8 +52,9 @@ export default function EntryPage() {
             throw supabaseError;
           }
         } else if (data) {
+          const decryptedText = await decryptText(data.text, userId);
           setEntry({
-            text: data.text,
+            text: decryptedText,
             prompt: data.prompt
           });
         }
