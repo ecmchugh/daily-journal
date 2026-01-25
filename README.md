@@ -11,6 +11,8 @@ A mindful journaling app with timed 15-minute writing sessions and rotating dail
 - **Automatic Saving** — Your entries are automatically saved to Supabase when the timer ends. Your writing persists securely in the cloud.
 - **Auto-Save on Refresh** — Never lose your work! Your writing is automatically saved as you type, so if you accidentally refresh the page, your text will be restored.
 - **Previous Entries** — Browse and read all your past journal entries organized by date, loaded from Supabase.
+- **End-to-End Encryption** — Journal entries are encrypted client-side using AES-256-GCM before being stored in Supabase. Your private thoughts remain private—even database administrators cannot read your entries.
+- **Row Level Security** — Supabase RLS policies ensure users can only access their own entries.
 - **One Entry Per Day** — The app tracks completion so you can only write once per day, encouraging a consistent daily practice.
 - **About Page** — Learn more about the app and its purpose.
 - **Aurora Background** — A subtle, animated WebGL aurora effect creates a calm, focused writing environment.
@@ -91,6 +93,7 @@ daily-journal/
 │   ├── layout.tsx          # App layout
 │   └── page.tsx            # Main journal page
 ├── lib/
+│   ├── encryption.ts       # AES-256-GCM encryption/decryption
 │   ├── supabase.ts         # Supabase client configuration
 │   └── userId.ts           # User ID generation utility
 ├── scripts/
@@ -128,9 +131,15 @@ Prompts cycle based on days since your first journal entry, so the sequence is c
 Journal entries are stored securely in Supabase:
 
 - **Table**: `journal_entries`
-- **Fields**: `user_id`, `date`, `text`, `prompt`, `updated_at`
+- **Fields**: `user_id`, `date`, `text` (encrypted), `prompt`, `updated_at`
 - **User Identification**: Anonymous user IDs are generated and stored in localStorage
 - **Privacy**: Each user's entries are isolated by their unique user ID
+
+### Security
+
+- **Client-Side Encryption**: All journal text is encrypted using AES-256-GCM before being sent to Supabase. The encryption key is derived from the user's unique ID using PBKDF2 with 100,000 iterations.
+- **Row Level Security (RLS)**: Supabase RLS policies restrict database access so users can only read and write their own entries.
+- **Zero-Knowledge Storage**: Since encryption happens client-side, the server never sees plaintext entries. Even with database access, entries appear as encrypted base64 strings.
 
 ### LocalStorage (Draft & Session Management)
 
