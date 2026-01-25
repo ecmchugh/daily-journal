@@ -8,7 +8,7 @@ A mindful journaling app with timed 15-minute writing sessions and rotating dail
 
 - **15-Minute Timed Sessions** — Each writing session has a countdown timer that starts when you begin typing. The constraint encourages focused, unfiltered writing.
 - **100 Rotating Prompts** — A new thoughtful prompt each day, delivered via REST API, cycling through topics like self-reflection, gratitude, relationships, growth, and more.
-- **Automatic Saving** — Your entries are automatically saved to Supabase when the timer ends. Your writing persists securely in the cloud.
+- **Automatic Saving** — Your entries are automatically saved to Supabase when the timer ends. Your writing persists securely in the cloud with RLS. 
 - **Auto-Save on Refresh** — Never lose your work! Your writing is automatically saved as you type, so if you accidentally refresh the page, your text will be restored.
 - **Previous Entries** — Browse and read all your past journal entries organized by date, loaded from Supabase.
 - **One Entry Per Day** — The app tracks completion so you can only write once per day, encouraging a consistent daily practice.
