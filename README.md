@@ -13,7 +13,6 @@ A mindful journaling app with timed 15-minute writing sessions and rotating dail
 - **Previous Entries** — Browse and read all your past journal entries organized by date, loaded from Supabase.
 - **One Entry Per Day** — The app tracks completion so you can only write once per day, encouraging a consistent daily practice.
 - **About Page** — Learn more about the app and its purpose.
-- **Aurora Background** — A subtle, animated WebGL aurora effect creates a calm, focused writing environment.
 
 ## How It Works
 
@@ -103,21 +102,6 @@ daily-journal/
 ```
 
 ## Prompts
-
-The app includes 100 thoughtfully curated prompts organized into categories:
-
-| Category | Prompts | Example |
-|----------|---------|---------|
-| Daily Reflection | 1-10 | "What emotion did you feel most strongly today, and why?" |
-| Growth & Learning | 11-20 | "What mistake did you make today, and what can it teach you?" |
-| Emotions & Mental Health | 21-30 | "What do you need more of right now?" |
-| Relationships | 31-40 | "Who are you grateful for today, and why?" |
-| Habits & Productivity | 41-50 | "Did your actions today align with your goals?" |
-| Gratitude & Positivity | 51-60 | "What ordinary moment felt special today?" |
-| Self-Reflection | 61-70 | "Did your actions today reflect who you want to be?" |
-| Looking Forward | 71-80 | "What intention do you want to carry into tomorrow?" |
-| End-of-Day Closure | 81-90 | "What part of today do you want to remember?" |
-| Open-Ended | 91-100 | "If you could give yourself one piece of advice tonight, what would it be?" |
 
 Prompts cycle based on days since your first journal entry, so the sequence is consistent for each user. The prompt is fetched via a REST API endpoint (`/api/prompts`) that calculates which prompt to show based on your start date.
 
