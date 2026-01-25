@@ -162,7 +162,6 @@ Returns the prompt for a given day based on days since first use.
 - **UI**: [React 19](https://react.dev) with TypeScript
 - **Database**: [Supabase](https://supabase.com) for cloud storage
 - **Styling**: [Tailwind CSS 4](https://tailwindcss.com)
-- **Graphics**: [OGL](https://github.com/oframe/ogl) for WebGL aurora effect
 - **Fonts**: Google Sans
 
 ## Scripts
