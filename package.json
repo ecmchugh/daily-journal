@@ -10,6 +10,7 @@
     "clear-data": "node scripts/clear-data.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.91.1",
     "bootstrap": "^5.3.8",
     "next": "16.0.10",
     "ogl": "^1.0.11",

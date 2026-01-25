@@ -2,39 +2,58 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
+import { getOrCreateUserId } from "@/lib/userId";
 
 interface JournalEntry {
   text: string;
   prompt?: string;
 }
 
-type EntryValue = string | JournalEntry;
-
 export default function PreviousPage() {
-  const [entries, setEntries] = useState<[string, EntryValue][]>([]);
+  const [entries, setEntries] = useState<[string, JournalEntry][]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      const storedEntries = JSON.parse(
-        localStorage.getItem("journalEntries") || "{}"
-      );
-
-      // Convert object into array so we can render it
-      const entryArray = Object.entries(storedEntries) as [string, EntryValue][];
-      setEntries(entryArray);
-    } catch (error) {
-      console.error("Error loading journal entries from localStorage:", error);
-      setEntries([]);
-    }
+    const loadEntries = async () => {
+      try {
+        const userId = getOrCreateUserId();
+        
+        if (!userId) {
+          setEntries([]);
+          setLoading(false);
+          return;
+        }
+        
+        const { data, error: supabaseError } = await supabase
+          .from('journal_entries')
+          .select('*')
+          .eq('user_id', userId)
+          .order('date', { ascending: false });
+        
+        if (supabaseError) {
+          throw supabaseError;
+        }
+        
+        // Convert Supabase array to format: [date, { text, prompt }]
+        const entryArray: [string, JournalEntry][] = (data || []).map(entry => [
+          entry.date,
+          { text: entry.text, prompt: entry.prompt }
+        ]);
+        
+        setEntries(entryArray);
+      } catch (err) {
+        console.error("Error loading journal entries from Supabase:", err);
+        setError("Failed to load entries. Please try again.");
+        setEntries([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadEntries();
   }, []);
-
-  // Helper to get text from either old string or new object format
-  const getEntryText = (entry: EntryValue): string => {
-    if (typeof entry === "string") {
-      return entry;
-    }
-    return entry.text;
-  };
 
   return (
     <main>
@@ -45,6 +64,9 @@ export default function PreviousPage() {
           </span>
         </div>
         <div className="nav-right">
+          <Link href="/about" className="nav-link" style={{ marginRight: '12px' }}>
+            About
+          </Link>
           <Link href="/" className="nav-link">
             Home
           </Link>
@@ -52,8 +74,25 @@ export default function PreviousPage() {
       </nav>
       <h1>Previous Writings</h1>
 
+      {error && (
+        <div className="error-message" style={{ 
+          color: '#ff6b6b', 
+          textAlign: 'center', 
+          padding: '10px',
+          marginBottom: '16px',
+          backgroundColor: 'rgba(255, 107, 107, 0.1)',
+          borderRadius: '8px'
+        }}>
+          {error}
+        </div>
+      )}
+
       <div className="entries-grid">
-        {entries.length === 0 ? (
+        {loading ? (
+          <p style={{ width: "100%", textAlign: "center", opacity: 0.7 }}>
+            Loading entries...
+          </p>
+        ) : entries.length === 0 ? (
           <p style={{ width: "100%", textAlign: "center", opacity: 0.7 }}>
             No entries yet. Start writing to see your journal entries here.
           </p>
@@ -65,7 +104,7 @@ export default function PreviousPage() {
               className="entry-card"
             >
               <p className="entry-preview">
-                {getEntryText(entry).slice(0, 100)}...
+                {entry.text.slice(0, 100)}...
               </p>
               <span className="entry-date">{date}</span>
             </Link>

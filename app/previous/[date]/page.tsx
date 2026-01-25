@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
+import { getOrCreateUserId } from "@/lib/userId";
 
 interface JournalEntry {
   text: string;
@@ -14,33 +16,55 @@ export default function EntryPage() {
   const [entry, setEntry] = useState<JournalEntry | null>(null);
   const [date, setDate] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (params.date) {
+    const loadEntry = async () => {
+      if (!params.date) {
+        setLoading(false);
+        return;
+      }
+      
       try {
         const decodedDate = decodeURIComponent(params.date as string);
         setDate(decodedDate);
-
-        // Fetch entry from localStorage
-        const storedEntries = JSON.parse(
-          localStorage.getItem("journalEntries") || "{}"
-        );
-
-        const entryData = storedEntries[decodedDate];
-        if (entryData) {
-          // Handle both old (string) and new (object) formats
-          if (typeof entryData === "string") {
-            setEntry({ text: entryData });
-          } else {
-            setEntry(entryData);
-          }
+        
+        const userId = getOrCreateUserId();
+        
+        if (!userId) {
+          setLoading(false);
+          return;
         }
-      } catch (error) {
-        console.error("Error loading journal entry from localStorage:", error);
+        
+        const { data, error: supabaseError } = await supabase
+          .from('journal_entries')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('date', decodedDate)
+          .single();
+        
+        if (supabaseError) {
+          // PGRST116 means no rows returned - not a real error
+          if (supabaseError.code === 'PGRST116') {
+            setEntry(null);
+          } else {
+            throw supabaseError;
+          }
+        } else if (data) {
+          setEntry({
+            text: data.text,
+            prompt: data.prompt
+          });
+        }
+      } catch (err) {
+        console.error("Error loading journal entry from Supabase:", err);
+        setError("Failed to load entry. Please try again.");
       } finally {
         setLoading(false);
       }
-    }
+    };
+    
+    loadEntry();
   }, [params.date]);
 
   if (loading) {
@@ -59,6 +83,40 @@ export default function EntryPage() {
           </div>
         </nav>
         <p>Loading...</p>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main>
+        <nav className="nav">
+          <div className="nav-left">
+            <Link href="/previous" className="nav-link">
+              ← Back to Previous Writings
+            </Link>
+          </div>
+          <div className="nav-right">
+            <Link href="/" className="nav-link">
+              Daily
+            </Link>
+          </div>
+        </nav>
+        <div className="error-message" style={{ 
+          color: '#ff6b6b', 
+          textAlign: 'center', 
+          padding: '20px',
+          marginTop: '32px',
+          backgroundColor: 'rgba(255, 107, 107, 0.1)',
+          borderRadius: '8px'
+        }}>
+          {error}
+        </div>
+        <div style={{ textAlign: "center", marginTop: "32px" }}>
+          <Link href="/previous" className="nav-link">
+            Go back to Previous Writings
+          </Link>
+        </div>
       </main>
     );
   }
