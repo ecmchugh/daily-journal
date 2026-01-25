@@ -40,6 +40,10 @@ export default function AboutPage() {
           This was built because I wanted to journal, but I never took the time to take out a notebook and start writing. Also,
           I sometimes didn't know what to write about, and I also didn't want to subscribe to a journaling service. 
         </p>
+
+        <p>
+          Created by Ethan McHugh
+        </p>
       </div>
     </main>
   );
