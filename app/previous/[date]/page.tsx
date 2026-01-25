@@ -52,7 +52,12 @@ export default function EntryPage() {
             throw supabaseError;
           }
         } else if (data) {
-          const decryptedText = await decryptText(data.text, userId);
+          let decryptedText = data.text;
+          try {
+            decryptedText = await decryptText(data.text, userId);
+          } catch {
+            // Entry may not be encrypted, use original text
+          }
           setEntry({
             text: decryptedText,
             prompt: data.prompt
